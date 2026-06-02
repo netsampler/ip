@@ -10,7 +10,7 @@
   --bad: #a11313;
   --focus: #111111;
   --shadow: 0 14px 60px rgba(0, 0, 0, 0.08);
-  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 :root[data-theme="dark"] {
