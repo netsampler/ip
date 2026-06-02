@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="A fast, dependency-free IPv4 and IPv6 calculator for prefixes, address ranges, adjacent networks, and alternate notations."
+    />
+    <meta name="application-name" content="IP Calculator" />
+    <meta name="apple-mobile-web-app-title" content="IP Calculator" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://netsampler.github.io/ip/" />
+    <meta property="og:title" content="IP Calculator" />
+    <meta
+      property="og:description"
+      content="Calculate IPv4 and IPv6 prefixes, ranges, adjacent networks, and alternate address notations in a focused single-page tool."
+    />
+    <meta property="og:site_name" content="IP Calculator" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="IP Calculator" />
+    <meta
+      name="twitter:description"
+      content="Calculate IPv4 and IPv6 prefixes, ranges, adjacent networks, and alternate address notations in a focused single-page tool."
+    />
+    <title>IP Calculator</title>
+    <link rel="canonical" href="https://netsampler.github.io/ip/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="console" aria-label="IP calculator">
+        <div class="entry">
+          <div class="prompt" aria-hidden="true">&gt;</div>
+          <div class="input-wrap">
+            <textarea
+              id="prefixInput"
+              class="prefix-input"
+              autocomplete="off"
+              spellcheck="false"
+              inputmode="text"
+              rows="1"
+              wrap="soft"
+              aria-label="IP prefix"
+            >192.168.10.0/24</textarea>
+            <span id="ghostText" class="ghost" aria-hidden="true"></span>
+          </div>
+          <div class="prefix-nav" role="group" aria-label="Prefix navigation">
+            <button class="nav-button nav-button--up" type="button" data-nav="up" aria-label="Previous prefix" title="Previous prefix">
+              -
+            </button>
+            <button class="nav-button nav-button--left" type="button" data-nav="left" aria-label="Parent prefix" title="Parent prefix">
+              -
+            </button>
+            <button class="nav-button nav-button--right" type="button" data-nav="right" aria-label="Child prefix" title="Child prefix">
+              -
+            </button>
+            <button class="nav-button nav-button--down" type="button" data-nav="down" aria-label="Next prefix" title="Next prefix">
+              -
+            </button>
+          </div>
+          <button id="themeToggle" class="icon-button" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+            ◐
+          </button>
+        </div>
+        <datalist id="prefixSuggestions"></datalist>
+
+        <div id="message" class="message" role="status" aria-live="polite"></div>
+
+        <div class="workspace">
+          <aside class="prefixes" aria-label="Adjacent prefixes">
+            <header>
+              <span>Prefixes</span>
+              <span id="prefixMeta"></span>
+            </header>
+            <div id="prefixList" class="prefix-list"></div>
+          </aside>
+
+          <section class="details" aria-label="Range details">
+            <div class="detail-grid">
+              <article class="panel current">
+                <div class="panel-heading">
+                  <h2>Current</h2>
+                  <div id="presentationControl" class="presentation-control" role="radiogroup" aria-label="Address presentation">
+                    <span class="presentation-indicator" aria-hidden="true"></span>
+                    <button class="presentation-option" type="button" role="radio" aria-checked="true" data-presentation="regular" title="Regular notation">
+                      Reg
+                    </button>
+                    <button class="presentation-option" type="button" role="radio" aria-checked="false" data-presentation="hex" title="Hex notation">
+                      Hex
+                    </button>
+                    <button class="presentation-option" type="button" role="radio" aria-checked="false" data-presentation="binary" title="Binary notation">
+                      Bin
+                    </button>
+                    <button class="presentation-option" type="button" role="radio" aria-checked="false" data-presentation="integer" title="Integer notation">
+                      Int
+                    </button>
+                  </div>
+                </div>
+                <dl id="currentDetails"></dl>
+              </article>
+
+              <article class="panel">
+                <h2>Adjacent</h2>
+                <div id="adjacentDetails" class="adjacent-grid"></div>
+              </article>
+
+              <article class="panel contains" hidden>
+                <h2>Contains</h2>
+                <div class="contains-row">
+                  <input
+                    id="containsInput"
+                    class="contains-input"
+                    autocomplete="off"
+                    spellcheck="false"
+                    inputmode="text"
+                    aria-label="Prefix containment check"
+                    placeholder="10.0.0.0/8"
+                  />
+                  <output id="containsResult" class="contains-result">-</output>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
