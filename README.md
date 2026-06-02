@@ -2,6 +2,12 @@
 
 A dependency-free single-page IP calculator for IPv4 and IPv6 prefixes.
 
+Live site: [https://netsampler.github.io/ip/](https://netsampler.github.io/ip/)
+
+## Screenshot
+
+![Web IP Calculator showing fd01:bee::beef/64](assets/screenshot-fd01-bee-beef-64.jpg)
+
 ## Run
 
 ```sh
