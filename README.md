@@ -27,6 +27,10 @@ PORT=3000 npm run dev
 
 The app also works by opening `index.html` directly in a browser.
 
+## Offline
+
+When served over HTTPS or localhost, the app registers a service worker that caches the app shell after the first online visit. Online loads check the network first, so customers receive deployed updates before falling back to the cached offline copy.
+
 ## Controls
 
 - Type an IPv4 or IPv6 address/prefix to calculate the normalized range.
