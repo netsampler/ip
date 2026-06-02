@@ -15,6 +15,7 @@ const mimeTypes = {
   ".map": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
   ".txt": "text/plain; charset=utf-8",
+  ".webmanifest": "application/manifest+json; charset=utf-8",
 };
 
 const port = readPort();

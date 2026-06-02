@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Modern IP Calculator">
+  <rect width="512" height="512" rx="96" fill="#050505"/>
+  <path d="M112 164l88 92-88 92" fill="none" stroke="#f7f7f7" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M244 348h156" fill="none" stroke="#63d297" stroke-width="36" stroke-linecap="round"/>
+  <text x="248" y="236" fill="#f7f7f7" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="84" font-weight="700">IP</text>
+</svg>
