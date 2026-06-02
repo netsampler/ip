@@ -53,6 +53,9 @@ let prefixHistory = [];
 let prefixHistoryIndex = -1;
 let lastMouseHistoryButton = null;
 let lastMouseHistoryButtonTime = 0;
+const adjacencyMapResizeObserver = "ResizeObserver" in window
+  ? new ResizeObserver(() => updateAdjacencyMap())
+  : null;
 
 function parsePrefix(value) {
   const raw = cleanPrefixInputValue(value).trim();
@@ -586,43 +589,69 @@ function renderAdjacent(prefix) {
     ["child-right", "Child 2", childPrefix(prefix, true)],
   ].filter(([, , item]) => item);
 
-  adjacentDetails.replaceChildren(
-    createAdjacencyMap(items.map(([role]) => role)),
-    ...items.map(([role, label, item]) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = `adjacent-button adjacent-button--${role}`;
-      button.innerHTML = `<span></span><b></b>`;
-      button.children[0].textContent = label;
-      setDisplayText(button.children[1], formatPrefix(item));
-      button.addEventListener("click", () => setAdjacentPrefix(item, prefix));
-      return button;
-    }),
-  );
+  const map = createAdjacencyMap(items.map(([role]) => role));
+  const buttons = items.map(([role, label, item]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `adjacent-button adjacent-button--${role}`;
+    button.innerHTML = `<span></span><b></b>`;
+    button.children[0].textContent = label;
+    setDisplayText(button.children[1], formatPrefix(item));
+    button.addEventListener("click", () => setAdjacentPrefix(item, prefix));
+    return button;
+  });
+
+  adjacentDetails.replaceChildren(map, ...buttons);
+  adjacencyMapResizeObserver?.disconnect();
+  adjacencyMapResizeObserver?.observe(adjacentDetails);
+  updateAdjacencyMap(map);
 }
 
 function createAdjacencyMap(roles) {
-  const points = {
-    parent: [50, 16.7],
-    left: [25, 50],
-    right: [75, 50],
-    "child-left": [25, 83.3],
-    "child-right": [75, 83.3],
-  };
-  const center = [50, 50];
   const map = document.createElement("div");
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   const dot = document.createElement("span");
 
   map.className = "adjacency-map";
+  map.dataset.roles = roles.join(" ");
   map.setAttribute("aria-hidden", "true");
   svg.classList.add("adjacency-lines");
-  svg.setAttribute("viewBox", "0 0 100 100");
   svg.setAttribute("preserveAspectRatio", "none");
   dot.className = "adjacency-dot";
 
+  map.append(svg, dot);
+  return map;
+}
+
+function updateAdjacencyMap(map = adjacentDetails.querySelector(".adjacency-map")) {
+  if (!map) return;
+
+  const svg = map.querySelector(".adjacency-lines");
+  const dot = map.querySelector(".adjacency-dot");
+  const mapRect = map.getBoundingClientRect();
+  const roles = map.dataset.roles.split(" ").filter(Boolean);
+
+  svg.replaceChildren();
+  if (!mapRect.width || !mapRect.height) return;
+
+  const centers = Object.fromEntries(roles.flatMap((role) => {
+    const button = adjacentDetails.querySelector(`.adjacent-button--${role}`);
+    if (!button) return [];
+
+    const rect = button.getBoundingClientRect();
+    return [[role, [
+      rect.left + rect.width / 2 - mapRect.left,
+      rect.top + rect.height / 2 - mapRect.top,
+    ]]];
+  }));
+  const center = adjacencyCenter(centers, mapRect);
+
+  dot.style.left = `${center[0]}px`;
+  dot.style.top = `${center[1]}px`;
+  svg.setAttribute("viewBox", `0 0 ${mapRect.width} ${mapRect.height}`);
+
   roles.forEach((role) => {
-    const point = points[role];
+    const point = centers[role];
     if (!point) return;
 
     const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
@@ -633,9 +662,21 @@ function createAdjacencyMap(roles) {
     line.setAttribute("points", route.map(([x, y]) => `${x},${y}`).join(" "));
     svg.append(line);
   });
+}
 
-  map.append(svg, dot);
-  return map;
+function adjacencyCenter(centers, mapRect) {
+  if (centers.left && centers.right) {
+    return [
+      (centers.left[0] + centers.right[0]) / 2,
+      (centers.left[1] + centers.right[1]) / 2,
+    ];
+  }
+
+  const rowAnchor = centers.left || centers.right || centers["child-left"] || centers["child-right"];
+  return [
+    mapRect.width / 2,
+    rowAnchor ? rowAnchor[1] : mapRect.height / 2,
+  ];
 }
 
 function setPrefix(prefix, remember = true) {
