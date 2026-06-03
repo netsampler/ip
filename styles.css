@@ -204,29 +204,11 @@ input {
   opacity: 0.32;
 }
 
-.nav-button.previous {
-  --nav-previous-border: 3px;
-  --nav-previous-contour: var(--bg);
-  background-color: var(--fg);
-  background-repeat: no-repeat;
-  color: var(--bg);
-}
-
-.nav-button.previous::before {
-  position: absolute;
-  z-index: 1;
-  display: block;
-  background-color: var(--bg);
-  content: "";
-  pointer-events: none;
-}
-
 .nav-button--up {
   grid-area: up;
 }
 
 .nav-button--up::after {
-  z-index: 0;
   top: 100%;
   left: 50%;
   width: var(--nav-button-inline);
@@ -235,40 +217,11 @@ input {
   transform: translateX(-50%);
 }
 
-.nav-button--up.previous::before {
-  top: 100%;
-  left: 50%;
-  width: var(--nav-button-inline);
-  height: var(--nav-triangle-block-depth);
-  clip-path: polygon(
-    0 0,
-    50% 100%,
-    100% 0,
-    calc(100% - var(--nav-previous-border)) 0,
-    50% calc(100% - var(--nav-previous-border)),
-    var(--nav-previous-border) 0
-  );
-  transform: translateX(-50%);
-}
-
-.nav-button--up.previous {
-  background-image:
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour)),
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour)),
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour));
-  background-position: top, left, right;
-  background-size:
-    100% var(--nav-previous-border),
-    var(--nav-previous-border) 100%,
-    var(--nav-previous-border) 100%;
-}
-
 .nav-button--down {
   grid-area: down;
 }
 
 .nav-button--down::after {
-  z-index: 0;
   bottom: 100%;
   left: 50%;
   width: var(--nav-button-inline);
@@ -277,40 +230,11 @@ input {
   transform: translateX(-50%);
 }
 
-.nav-button--down.previous::before {
-  bottom: 100%;
-  left: 50%;
-  width: var(--nav-button-inline);
-  height: var(--nav-triangle-block-depth);
-  clip-path: polygon(
-    50% 0,
-    100% 100%,
-    0 100%,
-    var(--nav-previous-border) 100%,
-    50% var(--nav-previous-border),
-    calc(100% - var(--nav-previous-border)) 100%
-  );
-  transform: translateX(-50%);
-}
-
-.nav-button--down.previous {
-  background-image:
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour)),
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour)),
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour));
-  background-position: bottom, left, right;
-  background-size:
-    100% var(--nav-previous-border),
-    var(--nav-previous-border) 100%,
-    var(--nav-previous-border) 100%;
-}
-
 .nav-button--left {
   grid-area: left;
 }
 
 .nav-button--left::after {
-  z-index: 0;
   top: 50%;
   left: 100%;
   width: var(--nav-triangle-inline-depth);
@@ -319,74 +243,17 @@ input {
   transform: translateY(-50%);
 }
 
-.nav-button--left.previous::before {
-  top: 50%;
-  left: 100%;
-  width: var(--nav-triangle-inline-depth);
-  height: var(--nav-button-block);
-  clip-path: polygon(
-    0 0,
-    100% 50%,
-    0 100%,
-    0 calc(100% - var(--nav-previous-border)),
-    calc(100% - var(--nav-previous-border)) 50%,
-    0 var(--nav-previous-border)
-  );
-  transform: translateY(-50%);
-}
-
-.nav-button--left.previous {
-  background-image:
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour)),
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour)),
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour));
-  background-position: top, bottom, left;
-  background-size:
-    100% var(--nav-previous-border),
-    100% var(--nav-previous-border),
-    var(--nav-previous-border) 100%;
-}
-
 .nav-button--right {
   grid-area: right;
 }
 
 .nav-button--right::after {
-  z-index: 0;
   top: 50%;
   right: 100%;
   width: var(--nav-triangle-inline-depth);
   height: var(--nav-button-block);
   clip-path: polygon(100% 0, 0 50%, 100% 100%);
   transform: translateY(-50%);
-}
-
-.nav-button--right.previous::before {
-  top: 50%;
-  right: 100%;
-  width: var(--nav-triangle-inline-depth);
-  height: var(--nav-button-block);
-  clip-path: polygon(
-    100% 0,
-    0 50%,
-    100% 100%,
-    100% calc(100% - var(--nav-previous-border)),
-    var(--nav-previous-border) 50%,
-    100% var(--nav-previous-border)
-  );
-  transform: translateY(-50%);
-}
-
-.nav-button--right.previous {
-  background-image:
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour)),
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour)),
-    linear-gradient(var(--nav-previous-contour), var(--nav-previous-contour));
-  background-position: top, bottom, right;
-  background-size:
-    100% var(--nav-previous-border),
-    100% var(--nav-previous-border),
-    var(--nav-previous-border) 100%;
 }
 
 .icon-button {

@@ -810,7 +810,6 @@ function setPrefixLengthWithAddress(prefix, address, remember = true) {
 }
 
 function updateNavControls(prefix) {
-  const previousDirection = prefix ? previousNavDirection(prefix) : "";
   const controls = prefix
     ? {
         up: {
@@ -845,20 +844,9 @@ function updateNavControls(prefix) {
     const control = controls[button.dataset.nav];
     button.disabled = !control.enabled;
     button.textContent = control.label;
-    button.classList.toggle("previous", button.dataset.nav === previousDirection);
     button.setAttribute("aria-label", control.title);
     button.title = control.title;
   });
-}
-
-function previousNavDirection(prefix) {
-  const directions = [
-    ["up", adjacentPrefix(prefix, -1)],
-    ["down", adjacentPrefix(prefix, 1)],
-    ["left", parentPrefix(prefix)],
-    ["right", childPrefixContaining(prefix)],
-  ];
-  return directions.find(([, item]) => item && isPreviousPrefix(item))?.[0] || "";
 }
 
 function setDefaultPresentation() {
