@@ -650,18 +650,35 @@ function updateAdjacencyMap(map = adjacentDetails.querySelector(".adjacency-map"
   dot.style.top = `${center[1]}px`;
   svg.setAttribute("viewBox", `0 0 ${mapRect.width} ${mapRect.height}`);
 
+  const childRoles = roles.filter((role) => role.startsWith("child-") && centers[role]);
+  const childJunction = childRoles.length > 1
+    ? [
+        center[0],
+        childRoles.reduce((sum, role) => sum + centers[role][1], 0) / childRoles.length,
+      ]
+    : null;
+
+  if (childJunction) {
+    appendAdjacencyLine(svg, [center, childJunction]);
+  }
+
   roles.forEach((role) => {
     const point = centers[role];
     if (!point) return;
 
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-    const route = role.startsWith("child-")
+    const route = childJunction && role.startsWith("child-")
+      ? [childJunction, point]
+      : role.startsWith("child-")
       ? [center, [center[0], point[1]], point]
       : [center, point];
-
-    line.setAttribute("points", route.map(([x, y]) => `${x},${y}`).join(" "));
-    svg.append(line);
+    appendAdjacencyLine(svg, route);
   });
+}
+
+function appendAdjacencyLine(svg, route) {
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+  line.setAttribute("points", route.map(([x, y]) => `${x},${y}`).join(" "));
+  svg.append(line);
 }
 
 function adjacencyCenter(centers, mapRect) {
