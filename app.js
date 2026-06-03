@@ -674,24 +674,46 @@ function updateAdjacencyMap(map = adjacentDetails.querySelector(".adjacency-map"
   dot.style.top = `${center[1]}px`;
   svg.setAttribute("viewBox", `0 0 ${mapRect.width} ${mapRect.height}`);
 
+  const childRoles = roles.filter((role) => role.startsWith("child-") && centers[role]);
+  const childJunction = childRoles.length > 1
+    ? [
+        center[0],
+        childRoles.reduce((sum, role) => sum + centers[role][1], 0) / childRoles.length,
+      ]
+    : null;
+  const previousChildRole = childRoles.find((role) => {
+    const button = adjacentDetails.querySelector(`.adjacent-button--${role}`);
+    return button?.classList.contains("previous");
+  });
+
+  if (childJunction) {
+    appendAdjacencyLine(svg, [center, childJunction], Boolean(previousChildRole));
+  }
+
   roles.forEach((role) => {
     const point = centers[role];
     if (!point) return;
 
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
     const button = adjacentDetails.querySelector(`.adjacent-button--${role}`);
     const isPrevious = button?.classList.contains("previous");
-    const routeToPrefix = role.startsWith("child-")
+    const routeToPrefix = childJunction && role.startsWith("child-")
+      ? [childJunction, point]
+      : role.startsWith("child-")
       ? [center, [center[0], point[1]], point]
       : [center, point];
-    const route = isPrevious ? [...routeToPrefix].reverse() : routeToPrefix;
-
-    if (isPrevious) {
-      line.classList.add("previous");
-    }
-    line.setAttribute("points", route.map(([x, y]) => `${x},${y}`).join(" "));
-    svg.append(line);
+    appendAdjacencyLine(svg, routeToPrefix, isPrevious);
   });
+}
+
+function appendAdjacencyLine(svg, routeToPrefix, isPrevious = false) {
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+  const route = isPrevious ? [...routeToPrefix].reverse() : routeToPrefix;
+
+  if (isPrevious) {
+    line.classList.add("previous");
+  }
+  line.setAttribute("points", route.map(([x, y]) => `${x},${y}`).join(" "));
+  svg.append(line);
 }
 
 function adjacencyCenter(centers, mapRect) {
@@ -788,6 +810,7 @@ function setPrefixLengthWithAddress(prefix, address, remember = true) {
 }
 
 function updateNavControls(prefix) {
+  const previousDirection = prefix ? previousNavDirection(prefix) : "";
   const controls = prefix
     ? {
         up: {
@@ -822,9 +845,20 @@ function updateNavControls(prefix) {
     const control = controls[button.dataset.nav];
     button.disabled = !control.enabled;
     button.textContent = control.label;
+    button.classList.toggle("previous", button.dataset.nav === previousDirection);
     button.setAttribute("aria-label", control.title);
     button.title = control.title;
   });
+}
+
+function previousNavDirection(prefix) {
+  const directions = [
+    ["up", adjacentPrefix(prefix, -1)],
+    ["down", adjacentPrefix(prefix, 1)],
+    ["left", parentPrefix(prefix)],
+    ["right", childPrefixContaining(prefix)],
+  ];
+  return directions.find(([, item]) => item && isPreviousPrefix(item))?.[0] || "";
 }
 
 function setDefaultPresentation() {
