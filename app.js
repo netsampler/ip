@@ -51,6 +51,7 @@ let typingTimer = 0;
 let recents = loadRecents();
 let prefixHistory = [];
 let prefixHistoryIndex = -1;
+let previousPrefixKey = "";
 let lastMouseHistoryButton = null;
 let lastMouseHistoryButtonTime = 0;
 const adjacencyMapResizeObserver = "ResizeObserver" in window
@@ -543,13 +544,23 @@ function renderPrefixList(prefix) {
   prefixMeta.textContent = `/${prefix.prefixLength}`;
   prefixList.replaceChildren(
     ...rows.map((row) => {
+      const isCurrent = row.network === prefix.network;
+      const isPrevious = !isCurrent && isPreviousPrefix(row);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `prefix-item${row.network === prefix.network ? " active" : ""}`;
+      button.className = [
+        "prefix-item",
+        isCurrent ? "active" : "",
+        isPrevious ? "previous" : "",
+      ].filter(Boolean).join(" ");
       button.dataset.prefix = formatPrefix(row);
       button.innerHTML = `<span></span><span></span>`;
       setDisplayText(button.children[0], formatPrefix(row));
-      button.children[1].textContent = row.network === prefix.network ? "now" : signedOffset(row.network, prefix);
+      button.children[1].textContent = isCurrent
+        ? "now"
+        : isPrevious
+          ? "(previous)"
+          : signedOffset(row.network, prefix);
       button.addEventListener("click", () => setPrefixWithNavigatedAddress(row, prefix));
       return button;
     }),
@@ -591,12 +602,20 @@ function renderAdjacent(prefix) {
 
   const map = createAdjacencyMap(items.map(([role]) => role));
   const buttons = items.map(([role, label, item]) => {
+    const isPrevious = isPreviousPrefix(item);
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `adjacent-button adjacent-button--${role}`;
+    button.className = [
+      "adjacent-button",
+      `adjacent-button--${role}`,
+      isPrevious ? "previous" : "",
+    ].filter(Boolean).join(" ");
     button.innerHTML = `<span></span><b></b>`;
-    button.children[0].textContent = label;
+    button.children[0].textContent = isPrevious ? `${label} (previous)` : label;
     setDisplayText(button.children[1], formatPrefix(item));
+    if (isPrevious) {
+      button.title = `Previous prefix: ${formatPrefix(item)}`;
+    }
     button.addEventListener("click", () => setAdjacentPrefix(item, prefix));
     return button;
   });
@@ -610,14 +629,19 @@ function renderAdjacent(prefix) {
 function createAdjacencyMap(roles) {
   const map = document.createElement("div");
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  const dot = document.createElement("span");
+  const dot = document.createElement("button");
 
   map.className = "adjacency-map";
   map.dataset.roles = roles.join(" ");
-  map.setAttribute("aria-hidden", "true");
+  map.classList.toggle("has-previous", Boolean(previousPrefixKey));
   svg.classList.add("adjacency-lines");
+  svg.setAttribute("aria-hidden", "true");
   svg.setAttribute("preserveAspectRatio", "none");
   dot.className = "adjacency-dot";
+  dot.type = "button";
+  dot.title = "Clear previous prefix";
+  dot.setAttribute("aria-label", "Clear previous prefix");
+  dot.addEventListener("click", clearPreviousPrefixHighlight);
 
   map.append(svg, dot);
   return map;
@@ -655,10 +679,16 @@ function updateAdjacencyMap(map = adjacentDetails.querySelector(".adjacency-map"
     if (!point) return;
 
     const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-    const route = role.startsWith("child-")
+    const button = adjacentDetails.querySelector(`.adjacent-button--${role}`);
+    const isPrevious = button?.classList.contains("previous");
+    const routeToPrefix = role.startsWith("child-")
       ? [center, [center[0], point[1]], point]
       : [center, point];
+    const route = isPrevious ? [...routeToPrefix].reverse() : routeToPrefix;
 
+    if (isPrevious) {
+      line.classList.add("previous");
+    }
     line.setAttribute("points", route.map(([x, y]) => `${x},${y}`).join(" "));
     svg.append(line);
   });
@@ -680,7 +710,7 @@ function adjacencyCenter(centers, mapRect) {
 }
 
 function setPrefix(prefix, remember = true) {
-  commitCurrentPrefixHistory();
+  beginPrefixNavigation();
   setPrefixInputValue(formatPrefix(prefix));
   current = prefix;
   if (remember) {
@@ -691,11 +721,11 @@ function setPrefix(prefix, remember = true) {
 }
 
 function setAdjacentPrefix(prefix, base) {
-  commitCurrentPrefixHistory();
   setPrefixWithNavigatedAddress(prefix, base);
 }
 
 function setPrefixWithNavigatedAddress(prefix, base) {
+  beginPrefixNavigation(base);
   setPrefixWithAddress(prefix, navigatedAddress(prefix, base));
 }
 
@@ -710,7 +740,7 @@ function navigatedAddress(prefix, base) {
 
 function movePrefix(delta) {
   if (!current) return;
-  commitCurrentPrefixHistory();
+  beginPrefixNavigation();
   const target = current.network + current.size * BigInt(delta);
   const next = prefixFromNetworkPreservingAddress(target, current);
   setPrefixWithAddress(next, next.address);
@@ -718,7 +748,7 @@ function movePrefix(delta) {
 
 function resizePrefix(direction) {
   if (!current) return;
-  commitCurrentPrefixHistory();
+  beginPrefixNavigation();
   const next = direction < 0 ? childPrefixContaining(current) : parentPrefix(current);
   if (next) {
     setPrefixLengthWithAddress(next, current.address);
@@ -926,40 +956,55 @@ function commitCurrentPrefixHistory() {
   }
 }
 
+function beginPrefixNavigation(origin = current) {
+  commitCurrentPrefixHistory();
+  previousPrefixKey = prefixKey(origin);
+}
+
 function movePrefixHistory(delta) {
   const nextIndex = prefixHistoryIndex + delta;
   if (nextIndex < 0 || nextIndex >= prefixHistory.length) {
     return false;
   }
 
+  previousPrefixKey = prefixKey(current);
   prefixHistoryIndex = nextIndex;
   setPrefixInputValue(prefixHistory[prefixHistoryIndex]);
   render();
   return true;
 }
 
+function prefixKey(prefix) {
+  return prefix
+    ? `${prefix.version}:${prefix.prefixLength}:${prefix.network}`
+    : "";
+}
+
+function isPreviousPrefix(prefix) {
+  return Boolean(previousPrefixKey && prefixKey(prefix) === previousPrefixKey);
+}
+
+function clearPreviousPrefixHighlight() {
+  if (!previousPrefixKey) return;
+  previousPrefixKey = "";
+  render();
+}
+
 function handleMouseHistoryButton(event) {
   if (event.button !== MOUSE_BACK_BUTTON && event.button !== MOUSE_FORWARD_BUTTON) return;
 
-  const now = Date.now();
-  if (
-    event.type === "auxclick"
-    && event.button === lastMouseHistoryButton
-    && now - lastMouseHistoryButtonTime < 200
-  ) {
-    event.preventDefault();
-    event.stopPropagation();
-    return;
-  }
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.type !== "mousedown") return;
 
+  const now = Date.now();
+  if (event.button === lastMouseHistoryButton && now - lastMouseHistoryButtonTime < 120) return;
   commitCurrentPrefixHistory();
   const moved = movePrefixHistory(event.button === MOUSE_BACK_BUTTON ? -1 : 1);
   if (!moved) return;
 
   lastMouseHistoryButton = event.button;
   lastMouseHistoryButtonTime = now;
-  event.preventDefault();
-  event.stopPropagation();
 }
 
 function loadRecents() {
@@ -1089,6 +1134,7 @@ function minBigInt(left, right) {
 
 input.addEventListener("input", () => {
   syncPrefixInputWrapHints();
+  previousPrefixKey = "";
   window.clearTimeout(typingTimer);
   input.classList.add("typing");
   typingTimer = window.setTimeout(() => input.classList.remove("typing"), 160);
